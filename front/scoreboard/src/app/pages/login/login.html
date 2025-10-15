@@ -28,4 +28,61 @@
   </form>
 
   <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+
+  <hr class="divider" />
+
+  <div class="register-section">
+    <h3>Crear cuenta</h3>
+    <form (ngSubmit)="onRegister(registerForm)" #registerForm="ngForm">
+      <div class="form-group">
+        <label for="registerUsername">Usuario</label>
+        <input
+          id="registerUsername"
+          type="text"
+          name="registerUsername"
+          [(ngModel)]="registerUsername"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="registerPassword">Contraseña</label>
+        <input
+          id="registerPassword"
+          type="password"
+          name="registerPassword"
+          [(ngModel)]="registerPassword"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="registerRole">Rol</label>
+        <select
+          id="registerRole"
+          name="registerRole"
+          [(ngModel)]="registerRoleId"
+          [disabled]="isLoadingRoles || roles.length === 0"
+          required
+        >
+          <option [ngValue]="null" disabled>Selecciona un rol</option>
+          <option *ngFor="let role of roles" [ngValue]="role.id">{{ role.name }}</option>
+        </select>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="registerForm.invalid || isRegistering || isLoadingRoles || roles.length === 0"
+      >
+        {{ isRegistering ? 'Registrando...' : 'Registrarse' }}
+      </button>
+    </form>
+
+    <p *ngIf="isLoadingRoles" class="hint">Cargando roles disponibles...</p>
+    <p *ngIf="!isLoadingRoles && roles.length === 0" class="hint">
+      No hay roles disponibles para registrarse.
+    </p>
+    <p *ngIf="registerError" class="error">{{ registerError }}</p>
+    <p *ngIf="registerSuccess" class="success">{{ registerSuccess }}</p>
+  </div>
 </div>
