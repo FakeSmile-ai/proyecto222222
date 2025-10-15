@@ -1,7 +1,7 @@
 // src/app/pages/login/login.ts
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthenticationService } from '../../core/services/authentication.service';
 import { CommonModule } from '@angular/common';
 import { LoginResponseDto } from '../../core/models/login-response.dto';
@@ -9,7 +9,7 @@ import { LoginResponseDto } from '../../core/models/login-response.dto';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
@@ -25,7 +25,15 @@ export class LoginComponent {
   ) {}
 
   onSubmit() {
-    this.authService.login(this.username, this.password).subscribe({
+    const username = this.username.trim();
+    const password = this.password.trim();
+    if (!username || !password) {
+      this.errorMessage = 'Ingresa un usuario y contraseña válidos.';
+      return;
+    }
+
+    this.errorMessage = '';
+    this.authService.login(username, password).subscribe({
       next: (res: LoginResponseDto) => {
         this.authService.saveUser(res);
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
