@@ -1,5 +1,7 @@
+version: '3.9'
+
 services:
-  db:
+  sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
@@ -15,10 +17,10 @@ services:
       retries: 60
       start_period: 40s
 
-  db-init:
+  sqlserver-init:
     image: mcr.microsoft.com/mssql-tools
     depends_on:
-      db:
+      sqlserver:
         condition: service_healthy
     environment:
       MSSQL_SA_PASSWORD: "Guate!2025Siman"
@@ -27,29 +29,112 @@ services:
       - ./sql/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     entrypoint: ["/bin/bash", "/docker-entrypoint-initdb.d/init-db.sh"]
 
-  api:
+  player-mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: players_root
+      MYSQL_DATABASE: players_db
+      MYSQL_USER: players_app
+      MYSQL_PASSWORD: players_pass
+    volumes:
+      - playersdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  team-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: teams_db
+      POSTGRES_USER: teams_app
+      POSTGRES_PASSWORD: teams_pass
+    volumes:
+      - teamsdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teams_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  player-service:
     build:
-      context: ./back/Scoreboard
+      context: ./services/player-service
+    depends_on:
+      player-mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: player-mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: players_db
+      MYSQL_USER: players_app
+      MYSQL_PASSWORD: players_pass
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  team-service:
+    build:
+      context: ./services/team-service
+    depends_on:
+      team-postgres:
+        condition: service_healthy
+      player-service:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8081
+      POSTGRES_HOST: team-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: teams_db
+      POSTGRES_USER: teams_app
+      POSTGRES_PASSWORD: teams_pass
+      PLAYER_SERVICE_URL: http://player-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  tournament-service:
+    build:
+      context: ./services/tournament-service
     environment:
       ASPNETCORE_URLS: "http://+:8080"
-      ConnectionStrings__DefaultConnection: "Server=db;Database=MarcadorDb;User Id=marcador_app;Password=MarcadorAppPy1;Encrypt=true;TrustServerCertificate=true;MultipleActiveResultSets=true"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=MarcadorDb;User Id=marcador_app;Password=MarcadorAppPy1;Encrypt=true;TrustServerCertificate=true;MultipleActiveResultSets=true"
+      TeamService__BaseUrl: "http://team-service:8081"
     depends_on:
-      db:
+      sqlserver:
         condition: service_healthy
-      db-init:
+      sqlserver-init:
         condition: service_completed_successfully
+      team-service:
+        condition: service_started
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   web:
     build:
       context: ./front
       dockerfile: Dockerfile
     depends_on:
-      api:
+      tournament-service:
+        condition: service_started
+      team-service:
+        condition: service_started
+      player-service:
         condition: service_started
     ports:
       - "80:80"
 
 volumes:
   mssqldata:
+  playersdata:
+  teamsdata:
