@@ -2,7 +2,7 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable } from 'rxjs';
-import { LoginResponseDto } from '../models/login-response.dto';
+import { LoginResponseDto, RoleDto } from '../models/login-response.dto';
 import { decodeJwt } from '../utils/jwt'; // 👈 ruta correcta desde /core/services
 
 @Injectable({ providedIn: 'root' })
@@ -18,6 +18,18 @@ export class AuthenticationService {
 
   login(username: string, password: string): Observable<LoginResponseDto> {
     return this.http.post<LoginResponseDto>(`${this.apiUrl}/login`, { username, password });
+  }
+
+  register(username: string, password: string, roleId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/register`, {
+      username,
+      password,
+      roleId
+    });
+  }
+
+  getRoles(): Observable<RoleDto[]> {
+    return this.http.get<RoleDto[]>(`/api/role`);
   }
 
   saveUser(userData: LoginResponseDto) {
