@@ -625,8 +625,6 @@ public class MatchesController(AppDbContext db, IHubContext<ScoreHub> hub, IMatc
     public async Task<IActionResult> Finish(int id, [FromBody] FinishMatchDto dto)
     {
         var m = await db.Matches
-            .Include(x => x.HomeTeam)
-            .Include(x => x.AwayTeam)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (m is null) return NotFound();
