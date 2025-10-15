@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Scoreboard.Models.Entities
 {
     public class RoleMenu
@@ -8,7 +10,9 @@ namespace Scoreboard.Models.Entities
 
         public int MenuId { get; set; }
         public Menu? Menu { get; set; }
-        public ICollection<RoleMenu> RoleMenus { get; set; } = [];
 
+        public int? RoleMenuId { get; set; }
+        public RoleMenu? Parent { get; set; }
+        public ICollection<RoleMenu> RoleMenus { get; set; } = new List<RoleMenu>();
     }
 }

@@ -1,0 +1,61 @@
+<div class="register-container">
+  <h2>Crea tu cuenta</h2>
+
+  <form (ngSubmit)="submit(registerForm)" #registerForm="ngForm">
+    <div class="form-group">
+      <label for="username">Usuario</label>
+      <input
+        id="username"
+        type="text"
+        name="username"
+        [(ngModel)]="username"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Contraseña</label>
+      <input
+        id="password"
+        type="password"
+        name="password"
+        [(ngModel)]="password"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="role">Rol</label>
+      <select
+        id="role"
+        name="role"
+        [(ngModel)]="roleId"
+        [disabled]="isLoadingRoles || roles.length === 0"
+        required
+      >
+        <option [ngValue]="null" disabled>Selecciona un rol</option>
+        <option *ngFor="let role of roles" [ngValue]="role.id">{{ role.name }}</option>
+      </select>
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="registerForm.invalid || isRegistering || isLoadingRoles || roles.length === 0"
+    >
+      {{ isRegistering ? 'Registrando...' : 'Registrarse' }}
+    </button>
+  </form>
+
+  <p *ngIf="isLoadingRoles" class="hint">Cargando roles disponibles...</p>
+  <p *ngIf="!isLoadingRoles && roles.length === 0" class="hint">
+    No hay roles disponibles para registrarse.
+  </p>
+
+  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
+
+  <p class="back-link">
+    ¿Ya tienes cuenta?
+    <a routerLink="/login">Inicia sesión</a>
+  </p>
+</div>

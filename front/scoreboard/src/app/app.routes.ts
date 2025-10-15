@@ -13,6 +13,12 @@ export const routes: Routes = [
       import('./pages/login/login').then(m => m.LoginComponent),
   },
 
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./pages/register/register').then(m => m.RegisterComponent),
+  },
+
   // Redirecciones cuando faltan IDs
   { path: 'score', pathMatch: 'full', redirectTo: 'score/1' },
   { path: 'control', pathMatch: 'full', redirectTo: 'control/1' },

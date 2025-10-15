@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Scoreboard.Models.Entities;
 
 public class Match
@@ -15,10 +18,11 @@ public class Match
     public int HomeScore { get; set; }
     public int AwayScore { get; set; }
 
-    
     public int Period { get; set; } = 1;        // 1..4
     public DateTime DateMatch { get; set; } = DateTime.Now;
 
-    
+    public Team HomeTeam { get; set; } = null!;
+    public Team AwayTeam { get; set; } = null!;
+
     public ICollection<ScoreEvent> ScoreEvents { get; set; } = new List<ScoreEvent>();
 }
